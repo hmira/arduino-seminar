@@ -137,8 +137,7 @@ int _TRUE = 1;
 
 int PRIORITY_LEFT = 0xFEEDDEEF;
 int PRIORITY_RIGHT = 0xFEEDBEEF;
-
-int AFTER_CROSSING = _FALSE;
+int PRIORITY_NONE = 0xDEADBEEF;
 
 int priority = PRIORITY_RIGHT;
 
@@ -189,36 +188,6 @@ void loop()
       return;
     }
   }
-  
-  /*
-  for (int i=0; i<sensorCount; i++) {
-    sensorVals[i] = digitalRead(sensors[i]);
-    Serial.print(sensorVals[i]);
-  } 
-  Serial.print("\n");
-  */
-  
-  //Serial.print("\n");
-  
-  //val = analogRead(potpin);            // reads the value of the potentiometer (value between 0 and 1023) 
-  //val = map(val, 0, 1023, 0, 179);     // scale it to use it with the servo (value between 0 and 180) 
-  
-  //delay(100);
-  //Serial.print(inertia);
-  //Serial.print(LAST_SENSOR);
-  //Serial.println(" ");
-  
-  //if (AFTER_CROSSING == _FALSE) {
-   
-/*
-  Serial.print("left_block: ");
-  Serial.print(left_block);
-  Serial.print(" right_block: ");
-  Serial.print(right_block);
-  Serial.print(" off_start: ");
-  Serial.print(pos);
-  Serial.println(" ");
-  */
   
   if (((digitalRead(TURN_LEFT_SENSOR) == BLACK_FLAG) && 
        (digitalRead(TURN_RIGHT_SENSOR) == BLACK_FLAG)) &&
@@ -319,7 +288,6 @@ void loop()
       right_2(4, 0);
     } else {
       fw_2(4);
-      AFTER_CROSSING = _FALSE;
       split_flag = OFF_SPLIT;
     }
     return;
@@ -327,8 +295,18 @@ void loop()
 
   
   if (split_flag == OFF_SPLIT) { 
-  
-    if ((digitalRead(LEFT_SENSOR) == BLACK_FLAG) && (digitalRead(RIGHT_SENSOR) == BLACK_FLAG)) {
+    
+    if ((right_block == EXPECT_CROSSING_1 || left_block == EXPECT_CROSSING_1) && digitalRead(LEFT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
+      fw_2(90);
+    } else if ((right_block == EXPECT_CROSSING_1 || left_block == EXPECT_CROSSING_1) && digitalRead(RIGHT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
+      fw_2(90);
+    } else
+    if ((right_block == EXPECT_CROSSING_2 || left_block == EXPECT_CROSSING_2) && digitalRead(LEFT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
+      fw_2(90);
+    } else if ((right_block == EXPECT_CROSSING_2 || left_block == EXPECT_CROSSING_2) && digitalRead(RIGHT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
+      fw_2(90);
+    }  
+    else if ((digitalRead(LEFT_SENSOR) == BLACK_FLAG) && (digitalRead(RIGHT_SENSOR) == BLACK_FLAG)) {
         split_flag = ON_SPLIT;
         if ( priority == PRIORITY_LEFT ) {
           left_2(50, 1);
@@ -336,7 +314,6 @@ void loop()
         else {
           right_2(50, 1);
         }
-        //AFTER_CROSSING = _TRUE;
         return;
     } else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
         left_2(30, 2);
@@ -344,7 +321,6 @@ void loop()
         right_2(30, 2);
     } else {
       fw_2(90);
-      AFTER_CROSSING = _FALSE;
     }
   
   }
@@ -353,6 +329,15 @@ void loop()
       left_2(30, 2);
     } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
       right_2(30, 2);
+    } else if ((right_block == EXPECT_CROSSING_1 || left_block == EXPECT_CROSSING_1) && digitalRead(LEFT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
+      fw_2(90);
+    } else if ((right_block == EXPECT_CROSSING_1 || left_block == EXPECT_CROSSING_1) && digitalRead(RIGHT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
+      fw_2(90);
+    }
+    else if ((right_block == EXPECT_CROSSING_2 || left_block == EXPECT_CROSSING_2) && digitalRead(LEFT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
+      fw_2(90);
+    } else if ((right_block == EXPECT_CROSSING_2 || left_block == EXPECT_CROSSING_2) && digitalRead(RIGHT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
+      fw_2(90);
     }
     else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
       left_2(30, 2);
@@ -360,7 +345,6 @@ void loop()
       right_2(30, 2);
     } else {
       fw_2(90);
-      AFTER_CROSSING = _FALSE;
       split_flag = OFF_SPLIT;
     }
     
