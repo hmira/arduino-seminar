@@ -16,6 +16,7 @@ int val;    // variable to read the value from the analog pin
 //int sensors[] = {7, 6, 5, 4, 3};
 int sensors[] = {3, 4, 5, 6, 7};
 int sensorVals[] = {0, 0, 0, 0, 0};
+const int BUTTON_SENSOR = 8;
 
 //int sensorCount = 3;
 int sensorCount = 5;
@@ -61,7 +62,15 @@ void setup()
   for (int i=0; i<sensorCount; i++) {
     pinMode(sensors[i], INPUT);
   }
-} 
+  
+  
+  pinMode(BUTTON_SENSOR, OUTPUT);
+  digitalWrite(BUTTON_SENSOR, HIGH);
+}
+
+boolean buttonPressed() {
+  return digitalRead(BUTTON_SENSOR) == 0;
+}
  
 void fw(int sp) {
   myservoL.write(90 - sp);                  // sets the servo position according to the scaled value 
@@ -150,9 +159,36 @@ int ON_SPLIT = 1;
 int OFF_SPLIT = 0;
 
 int split_flag = OFF_SPLIT;
- 
+
+int WAITING_ON_PUSH = 255;
+int SEEKING_START = 0;
+int WAITING_ON_START = 1;
+int READY_TO_START = 2;
+int RUNNING = 3;
+int FINISHED = 4;
+int button_state = WAITING_ON_PUSH;
+
 void loop() 
-{ 
+{
+  if (button_state == WAITING_ON_PUSH) {
+    if (buttonPressed()) {
+      button_state = SEEKING_START;
+    }
+    else {
+      fw_2(0);
+      return;
+    }
+  }
+  
+  if (button_state == READY_TO_START) {
+    if (buttonPressed()) {
+      button_state = RUNNING;
+    }
+    else {
+      fw_2(0);
+      return;
+    }
+  }
   
   /*
   for (int i=0; i<sensorCount; i++) {
@@ -174,6 +210,7 @@ void loop()
   
   //if (AFTER_CROSSING == _FALSE) {
    
+/*
   Serial.print("left_block: ");
   Serial.print(left_block);
   Serial.print(" right_block: ");
@@ -181,21 +218,52 @@ void loop()
   Serial.print(" off_start: ");
   Serial.print(pos);
   Serial.println(" ");
-  
+  */
   
   if (((digitalRead(TURN_LEFT_SENSOR) == BLACK_FLAG) && 
-       (digitalRead(TURN_RIGHT_SENSOR) == BLACK_FLAG))) {
+       (digitalRead(TURN_RIGHT_SENSOR) == BLACK_FLAG)) &&
+       ((digitalRead(LEFT_SENSOR) != BLACK_FLAG) && 
+       (digitalRead(RIGHT_SENSOR) != BLACK_FLAG))) {
     left_block = FREE;
     right_block = FREE;
     pos = ON_START;
+    if (button_state == SEEKING_START) {
+      button_state = WAITING_ON_START;
+      fw_2(1);
+      return;
+    }
+    
+    if (button_state == RUNNING) {
+      button_state = WAITING_ON_START;
+      fw_2(1);
+      return;
+    }
+    
+    if (button_state == WAITING_ON_START) {
+      button_state = WAITING_ON_START;
+      fw_2(1);
+      return;
+    }
   }
   else if (((digitalRead(TURN_LEFT_SENSOR) != BLACK_FLAG) && 
        (digitalRead(TURN_RIGHT_SENSOR) != BLACK_FLAG))) {
     pos = OFF_START;
+    if (button_state == WAITING_ON_START) {
+      button_state = READY_TO_START;
+      fw_2(1);
+      delay(50);
+      return;
+    }
+  }
+  else {
+    if (button_state == WAITING_ON_START) {
+      fw_2(1);
+      return;
+    }
   }
   
   
-  if (pos == OFF_START) {
+  if (pos == OFF_START && button_state == RUNNING) {
     if (digitalRead(TURN_LEFT_SENSOR) == BLACK_FLAG) {
       if (right_block == FREE && left_block == FREE) {
         priority = PRIORITY_LEFT;
@@ -238,7 +306,24 @@ void loop()
       }
     }
   }
-  
+
+  if (button_state == SEEKING_START) {
+    if (digitalRead(LEFT_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
+      left_2(4, 0);
+    } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
+      right_2(4, 0);
+    }
+    else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
+      left_2(4, 0);
+    } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG) {
+      right_2(4, 0);
+    } else {
+      fw_2(4);
+      AFTER_CROSSING = _FALSE;
+      split_flag = OFF_SPLIT;
+    }
+    return;
+  }
 
   
   if (split_flag == OFF_SPLIT) { 
@@ -246,17 +331,17 @@ void loop()
     if ((digitalRead(LEFT_SENSOR) == BLACK_FLAG) && (digitalRead(RIGHT_SENSOR) == BLACK_FLAG)) {
         split_flag = ON_SPLIT;
         if ( priority == PRIORITY_LEFT ) {
-          left_2(20, 2);
+          left_2(50, 1);
         }
         else {
-          right_2(20, 2);
+          right_2(50, 1);
         }
         //AFTER_CROSSING = _TRUE;
         return;
     } else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
-        left_2(20, 2);
+        left_2(30, 2);
     } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG) {
-        right_2(20, 2);
+        right_2(30, 2);
     } else {
       fw_2(90);
       AFTER_CROSSING = _FALSE;
@@ -265,14 +350,14 @@ void loop()
   }
   else {
     if (digitalRead(LEFT_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
-      left_2(20, 2);
+      left_2(30, 2);
     } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
-      right_2(20, 2);
+      right_2(30, 2);
     }
     else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
-      left_2(20, 2);
+      left_2(30, 2);
     } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG) {
-      right_2(20, 2);
+      right_2(30, 2);
     } else {
       fw_2(90);
       AFTER_CROSSING = _FALSE;
