@@ -167,6 +167,12 @@ int RUNNING = 3;
 int FINISHED = 4;
 int button_state = WAITING_ON_PUSH;
 
+const int LAST_TURN_LEFT = 0;
+const int LAST_TURN_RIGHT = 1;
+const int LAST_TURN_NONE = 2;
+int lastTurn = LAST_TURN_NONE;
+
+
 void loop() 
 {
   if (button_state == WAITING_ON_PUSH) {
@@ -234,7 +240,7 @@ void loop()
   
   if (pos == OFF_START && button_state == RUNNING) {
     if (digitalRead(TURN_LEFT_SENSOR) == BLACK_FLAG) {
-      if (right_block == FREE && left_block == FREE) {
+      if (right_block == FREE && left_block == FREE && digitalRead(CENTER_SENSOR) == BLACK_FLAG) {
         priority = PRIORITY_LEFT;
         right_block = EXPECT_CROSSING_1;
       }
@@ -255,7 +261,7 @@ void loop()
     }
     
     if (digitalRead(TURN_RIGHT_SENSOR) == BLACK_FLAG) {
-      if (right_block == FREE && left_block == FREE) {
+      if (right_block == FREE && left_block == FREE && digitalRead(CENTER_SENSOR) == BLACK_FLAG) {
         priority = PRIORITY_RIGHT;
         left_block = EXPECT_CROSSING_1;
       }
@@ -277,24 +283,33 @@ void loop()
   }
 
   if (button_state == SEEKING_START) {
-    if (digitalRead(LEFT_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
-      left_2(4, 0);
+    /*if (digitalRead(LEFT_SENSOR) == BLACK_FLAG && priority == PRIORITY_LEFT) {
+      left_2(60, -5);
     } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
-      right_2(4, 0);
+      right_2(60, -5);
     }
-    else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
-      left_2(4, 0);
-    } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG) {
-      right_2(4, 0);
-    } else {
-      fw_2(4);
+    else*/ if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
+      left_2(20, 5);
+      //delay(100);
+    } else /*if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG)*/ {
+      right_2(20, 5);
+      //delay(100);
+    } /*else {
+      fw_2(10);
       split_flag = OFF_SPLIT;
-    }
+    }*/
     return;
   }
 
-  
-  if (split_flag == OFF_SPLIT) { 
+  if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
+      lastTurn = LAST_TURN_LEFT;
+  } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG) {
+      lastTurn = LAST_TURN_RIGHT;
+  } else if (digitalRead(CENTER_SENSOR) == BLACK_FLAG) {
+      lastTurn = LAST_TURN_NONE;
+  }
+
+  if (split_flag == OFF_SPLIT) { //na ceste
     
     if ((right_block == EXPECT_CROSSING_1 || left_block == EXPECT_CROSSING_1) && digitalRead(LEFT_SENSOR) == BLACK_FLAG && digitalRead(CENTER_SENSOR) == BLACK_FLAG && priority == PRIORITY_RIGHT) {
       fw_2(90);
@@ -316,10 +331,19 @@ void loop()
         }
         return;
     } else if (digitalRead(LEFT_SENSOR) == BLACK_FLAG) {
-        left_2(30, 2);
+        left_2(30, 0);
     } else if (digitalRead(RIGHT_SENSOR) == BLACK_FLAG) {
+        right_2(30, 0);
+    } else if (digitalRead(RIGHT_SENSOR) != BLACK_FLAG && digitalRead(LEFT_SENSOR) != BLACK_FLAG && digitalRead(CENTER_SENSOR) != BLACK_FLAG) {
+      if (lastTurn == LAST_TURN_LEFT) {
+        left_2(30, 2);
+      } else if (lastTurn == LAST_TURN_RIGHT) {
         right_2(30, 2);
-    } else {
+      } else {
+        fw_2(90);
+      }
+    } else
+    {
       fw_2(90);
     }
   
