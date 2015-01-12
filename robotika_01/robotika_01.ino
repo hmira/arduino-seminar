@@ -4,9 +4,11 @@
 
 #include <Servo.h> 
  
+// serva 
 Servo myservoL;  // create servo object to control a servo 
 Servo myservoR; //  // create servo object to control a servo 
  
+// asi zbytecne - z examplu 
 int potpin = 0;  // analog pin used to connecti the potentiometer
 int val;    // variable to read the value from the analog pin 
 
@@ -14,17 +16,19 @@ int val;    // variable to read the value from the analog pin
 //int sensorVals[] = {0, 0, 0};
 
 //int sensors[] = {7, 6, 5, 4, 3};
-int sensors[] = {3, 4, 5, 6, 7};
-int sensorVals[] = {0, 0, 0, 0, 0};
-const int BUTTON_SENSOR = 8;
+
+int sensors[] = {3, 4, 5, 6, 7};  // piny senzoru
+int sensorVals[] = {0, 0, 0, 0, 0};   // nasnimane hodnoty senzoru  
+const int BUTTON_SENSOR = 8;    // pin tlacitka
 
 //int sensorCount = 3;
-int sensorCount = 5;
+int sensorCount = 5;    // pocet senzoru
 
 //int LEFT_SENSOR = sensors[0];
 //int CENTER_SENSOR = sensors[1];
 //int RIGHT_SENSOR = sensors[2];
 
+// pojmenovane jednotlive senzory
 int TURN_LEFT_SENSOR = sensors[4];
 int TURN_RIGHT_SENSOR = sensors[0];
 
@@ -39,7 +43,7 @@ int INERTIA = 900;
 int LAST_SENSOR = CENTER_SENSOR;
 
 int inertia = INERTIA;
-int BLACK_FLAG = 0;
+int BLACK_FLAG = 0;  // hodnota cary
  
 void setup() 
 { 
@@ -71,7 +75,8 @@ void setup()
 boolean buttonPressed() {
   return digitalRead(BUTTON_SENSOR) == 0;
 }
- 
+
+// pohyb vpred 
 void fw(int sp) {
   myservoL.write(90 - sp);                  // sets the servo position according to the scaled value 
   myservoR.write(90 + sp);                  // sets the servo position according to the scaled value   
@@ -83,13 +88,14 @@ void fw_2(int sp) {
   myservoR.write(90 - sp);                  // sets the servo position according to the scaled value   
 
 } 
- 
+
+// otaceni doleva 
 void left(int sp) {
   myservoL.write(90 - sp);                  // sets the servo position according to the scaled value 
   myservoR.write(90 - (sp/2));                  // sets the servo position according to the scaled value   
 
 } 
-
+// doleva s otacenim druheho kola
 void left(int sp, int sec_sp) {
   myservoL.write(90 - sp);                  // sets the servo position according to the scaled value 
   myservoR.write(90 - sec_sp);                  // sets the servo position according to the scaled value   
@@ -132,18 +138,22 @@ void right(int sp, int sec_sp, int inertia) {
 
 } 
 
+
 int _FALSE = 0;
 int _TRUE = 1;
 
+// priority, kam zatacet
 int PRIORITY_LEFT = 0xFEEDDEEF;
 int PRIORITY_RIGHT = 0xFEEDBEEF;
 int PRIORITY_NONE = 0xDEADBEEF;
 
+// priorita, kam zatacet
 int priority = PRIORITY_RIGHT;
 
 int left_block = 0;
 int right_block = 0;
 
+// stav kde jsme
 int FREE = 0;
 int EXPECT_CROSSING_1 = 1;
 int CROSSING_1 = 2;
@@ -159,6 +169,7 @@ int OFF_SPLIT = 0;
 
 int split_flag = OFF_SPLIT;
 
+// stavy tlacitka
 int WAITING_ON_PUSH = 255;
 int SEEKING_START = 0;
 int WAITING_ON_START = 1;
@@ -167,6 +178,7 @@ int RUNNING = 3;
 int FINISHED = 4;
 int button_state = WAITING_ON_PUSH;
 
+// kam jsme zataceli naposled - v pripade, ze uplne ztratime caru
 const int LAST_TURN_LEFT = 0;
 const int LAST_TURN_RIGHT = 1;
 const int LAST_TURN_NONE = 2;
@@ -175,6 +187,7 @@ int lastTurn = LAST_TURN_NONE;
 
 void loop() 
 {
+
   if (button_state == WAITING_ON_PUSH) {
     if (buttonPressed()) {
       button_state = SEEKING_START;
